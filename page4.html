@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Howler</title>
+
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital@0;1&family=Special+Elite&display=swap" rel="stylesheet">
+
+<style>
+/* ===== RESET ===== */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(circle at top, #120e08, #050403);
+  font-family: 'EB Garamond', serif;
+  overflow-y: auto;
+}
+
+/* ===== STAGE ===== */
+.stage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 0 220px;
+  position: relative;
+}
+.page {
+  min-height: 100vh;
+  display: block;   /* IMPORTANT */
+}
+
+/* ===== ENVELOPE ===== */
+.envelope {
+  width: 420px;
+  max-width: 90vw;
+  height: 270px;
+  background: linear-gradient(#d3bb93, #c1a77d);
+  border-radius: 6px;
+  position: relative;
+  box-shadow: 0 24px 60px rgba(0,0,0,.55);
+  z-index: 2;
+  margin:0 auto;
+}
+
+/* flap */
+.flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 52%;
+  background: linear-gradient(#c4a06c, #b08c5b);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: top;
+  animation: flapOpen 0.7s ease-out forwards;
+  animation-delay: 1.8s;
+}
+
+@keyframes flapOpen {
+  to { transform: rotateX(180deg); }
+}
+
+/* ===== LETTER ===== */
+.letter {
+  position: relative;
+  bottom: 40px;
+  align-content: top;
+  right:180px;
+  height: 520px;
+  width: 480px;               /* fits envelope */
+  max-width: 88vw;
+  background: linear-gradient(#fbf2dc, #f2e3c4);
+  padding: 48px 40px 60px;
+  border-radius: 6px;
+  box-shadow: 0 40px 90px rgba(0,0,0,.55);
+  transform-origin: bottom;
+   transform: translateX(-50%) translateY(40px) scaleY(0);
+  animation: riseAndUnroll 1.6s ease-out forwards;
+  animation-delay: 2.4s;
+  z-index: 3;
+  left: 50%;
+
+
+}
+.letter-wrap {
+  display: flex;
+  justify-content: center;   /* ✅ centers letter horizontally */
+}
+
+@keyframes riseAndUnroll {
+  0% {
+    transform: translateX(-50%) translateY(40px) scaleY(0);
+  }
+  45% {
+    transform: translateX(-50%) translateY(-40px) scaleY(1);
+  }
+  100% {
+    transform: translateX(-50%) translateY(-120px) scaleY(1);
+  }
+}
+
+
+/* scroll curl illusion */
+.letter::before,
+.letter::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 28px;
+}
+
+.letter::before {
+  top: -18px;
+  background: radial-gradient(ellipse at center,
+    rgba(0,0,0,0.25),
+    rgba(0,0,0,0.05),
+    transparent 70%);
+}
+
+.letter::after {
+  bottom: -18px;
+  background: radial-gradient(ellipse at center,
+    rgba(0,0,0,0.25),
+    rgba(0,0,0,0.05),
+    transparent 70%);
+}
+
+/* ===== TYPEWRITER TEXT ===== */
+.letter-content {
+  font-family: 'Special Elite', cursive;
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: #2a1d11;
+  white-space: pre-wrap;
+}
+.mail {
+  position: relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width: 340px;
+  max-width: 90vw;
+}
+
+/* mobile */
+@media (max-width: 600px) {
+  .letter {
+    width: 85vw;
+    padding: 36px 26px 46px;
+  }
+}
+#nextBtn {
+  margin-top: 40px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #f2e8c9;
+  font-family: 'EB Garamond', serif;
+  font-size: 1rem;
+  padding: 10px 28px;
+  border-radius: 30px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 1.2s ease, transform 0.3s ease;
+}
+
+#nextBtn.show {
+  opacity: 1;
+}
+
+#nextBtn:hover {
+  transform: translateY(-2px);
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="stage">
+
+  <div class="mail">
+
+    <div class="envelope">
+      <div class="flap"></div>
+    </div>
+
+    <div class="letter">
+      <div id="typeText" class="letter-content"></div>
+    </div>
+    <button id="nextBtn">Proceed</button>
+
+  </div>
+
+</div>
+
+
+<script>
+/* ===== TYPEWRITER ===== */
+const text = `My dearest,
+
+If this letter feels loud, forgive it —
+some emotions were never meant to whisper.
+
+On one ordinary day, twenty years ago,
+magic quietly chose to exist in my life —
+in the form of you.
+
+You were never just a memory.
+You became the place my heart learned how to stay.
+
+Even time, stubborn as it is,
+seems to pause when it thinks of you.
+
+Always.`;
+
+let i = 0;
+const speed = 38;
+const target = document.getElementById("typeText");
+
+function typeWriter() {
+  if (i < text.length) {
+    target.innerHTML += text.charAt(i) === "\n" ? "<br>" : text.charAt(i);
+    i++;
+    setTimeout(typeWriter, speed);
+  }
+}
+
+setTimeout(typeWriter, 4200); // AFTER letter unrolls
+document.getElementById("nextBtn").classList.add("show");
+
+document.getElementById("nextBtn").onclick = () => {
+  window.location.href = "page5.html";
+};
+
+</script>
+
+</body>
+</html>

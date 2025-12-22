@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>After All This Time</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    font-family: 'Cinzel', serif;
+    overflow: hidden;
+  }
+
+  .page {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #d3e8ff;
+    text-align: center;
+    transition: opacity 1s ease;
+  }
+
+  .hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #firstLine, #alwaysText {
+    font-size: 2.8rem;
+    text-shadow: 0 0 18px #8fbaff;
+    margin: 0.5rem 0;
+  }
+
+  #alwaysText {
+    font-size: 3rem;
+  }
+
+  /* Next page arrow */
+  #nextArrow {
+    margin-top: 50px;
+    font-size: 3rem;
+    color: #80c3ff;
+    text-shadow: 0 0 15px #80c3ff;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 1s ease, transform 0.3s ease;
+  }
+
+  #nextArrow:hover {
+    transform: translateY(-5px);
+    color: #b8e0ff;
+  }
+
+
+  .scrapbook-text {
+    max-width: 600px;
+    text-align: center;
+    padding: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- Page 1 -->
+<div id="page1" class="page">
+  <div id="firstLine"></div>
+  <div id="alwaysText"></div>
+  <div id="nextArrow">→</div>
+</div>
+
+
+<script>
+  const firstLineEl = document.getElementById("firstLine");
+  const alwaysEl = document.getElementById("alwaysText");
+  const page1 = document.getElementById("page1");
+  const page2 = document.getElementById("page2");
+  const nextArrow = document.getElementById("nextArrow");
+
+  function typeText(element, text, speed = 100, callback) {
+    let i = 0;
+    function typing() {
+      if (i < text.length) {
+        element.textContent += text[i];
+        i++;
+        setTimeout(typing, speed);
+      } else if (callback) {
+        callback();
+      }
+    }
+    typing();
+  }
+
+  // Type Page 1 text
+  typeText(firstLineEl, "After all this time?", 120, () => {
+    setTimeout(() => {
+      typeText(alwaysEl, "Always.", 140, () => {
+        // Show the next page arrow after typing completes
+        nextArrow.style.opacity = 1;
+      });
+    }, 1000); // 1 sec pause before "Always."
+  });
+
+  // Click arrow → go to Page 2 (separate HTML file)
+nextArrow.addEventListener('click', ()=> { window.location.href='page2.html'; });
+
+
+</script>
+</body>
+</html>

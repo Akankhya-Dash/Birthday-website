@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Hogwarts Express — Travel</title>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold: #f6d48a;
+    --midnight: #030316;
+  }
+  html,body{height:100%;margin:0;background:#030215;font-family:Patrick Hand, sans-serif; color:#fff;}
+  .stage{
+    position:relative;
+    width:100%;
+    height:100vh;
+    overflow:hidden;
+    background:
+      radial-gradient(ellipse at 10% 30%, rgba(20,40,70,0.18), transparent 10%),
+      radial-gradient(ellipse at 90% 70%, rgba(10,20,40,0.12), transparent 10%),
+      linear-gradient(180deg,#020217 0%, #000 80%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* faint stars */
+  .starfield{position:absolute;inset:0;pointer-events:none;opacity:0.45}
+  .star{position:absolute;width:2px;height:2px;background:#9fcfff;border-radius:50%;opacity:.9;box-shadow:0 0 6px rgba(160,220,255,.25)}
+
+  /* text over the scene */
+  .lead-text{
+    position:absolute;top:12vh;text-align:center;width:100%;z-index:6;
+    color:var(--gold);font-family:"Cinzel Decorative",serif;
+    text-shadow:0 0 18px rgba(200,180,120,.12);
+  }
+  .lead-text h2{margin:0;font-size:2.2rem;letter-spacing:1px}
+  .lead-text p{margin:0.6rem 0 0;font-size:1rem;color:rgba(246,212,138,.85)}
+
+  /* train track area */
+  .horizon{
+    position:absolute;left:0;right:0;bottom:10vh;height:40vh;pointer-events:none;
+  }
+
+  .train-wrap{
+    position:absolute;
+    left:-40%; /* start off screen */
+    bottom:6vh;
+    z-index:5;
+    width:1600px;
+    transform:translateZ(0);
+    will-change: transform;
+  }
+  .train{
+    width:100%;
+    display:block;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,.7));
+    transform-origin:center;
+  }
+
+  /* smoke (parallax) */
+  .smoke {
+    position:absolute;
+    left:12%;
+    bottom: 34vh;
+    width: 260px;
+    height: 220px;
+    background: url('images/smoke.png') center/cover no-repeat;
+    opacity:0.6;
+    filter: blur(6px) saturate(.9);
+    z-index:4;
+    mix-blend-mode:screen;
+  }
+
+  /* cinematic overlay glow */
+  .glow {
+    position:absolute;inset:0;pointer-events:none;z-index:8;
+    background: radial-gradient( circle at 50% 80%, rgba(255,230,180,0.03), transparent 10% );
+  }
+
+  /* train animation */
+  @keyframes trainRide {
+    0% { transform: translateX(0) translateY(0) scale(.95) }
+    10% { transform: translateX(8%) translateY(-3%) scale(1) }
+    40% { transform: translateX(45%) translateY(-2%) scale(1.03) }
+    70% { transform: translateX(85%) translateY(0) scale(1.06) }
+    100% { transform: translateX(160%) translateY(6%) scale(1.12) }
+  }
+
+  /* slight vignette */
+  .vignette{
+    position:absolute;inset:0;pointer-events:none;background:
+      radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.45) 100%);
+    z-index:9;
+  }
+
+  /* subtle ground line */
+  .tracks{
+    position:absolute;bottom:8vh;left:0;right:0;height:4px;background:linear-gradient(90deg,#141414,#2b2b2b);
+    opacity:.7;z-index:3;
+  }
+
+  /* CTA / skip */
+  .skip{
+    position:fixed;right:18px;top:18px;z-index:20;
+    background:rgba(255,255,255,.06);padding:8px 12px;border-radius:8px;color:#f8f5e6;cursor:pointer;font-family:Patrick Hand;
+    border:1px solid rgba(255,255,255,.04);
+  }
+
+  /* small mobile adjustments */
+  @media (max-width:700px){
+    .train-wrap{width:1000px;left:-60%}
+    .lead-text h2{font-size:1.6rem}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="lead-text">
+    <h2>Hop on — let me take you somewhere</h2>
+    <p>The Hogwarts Express is arriving. Close your eyes & hold tight.</p>
+  </div>
+
+  <div class="starfield" id="starfield"></div>
+
+  <div class="horizon">
+    <div class="smoke" id="smoke"></div>
+
+    <div class="train-wrap" id="trainWrap" aria-hidden="true">
+      <img class="train" src="images/train.png" alt="Hogwarts Express">
+    </div>
+
+    <div class="tracks"></div>
+  </div>
+
+  <div class="glow"></div>
+  <div class="vignette"></div>
+
+  <button class="skip" id="skipBtn">Skip →</button>
+</div>
+
+<audio id="trainAudio" src="audio/train-ambience.mp3" preload="auto"></audio>
+<audio id="whoosh" src="audio/whoosh.mp3" preload="auto"></audio>
+
+<script>
+/* small starfield for ambiance */
+const starfield = document.getElementById('starfield');
+for(let i=0;i<60;i++){
+  const s = document.createElement('div');
+  s.className='star';
+  s.style.left = (Math.random()*100)+'%';
+  s.style.top = (Math.random()*60+5)+'%';
+  s.style.opacity = (0.25+Math.random()*0.9).toFixed(2);
+  s.style.transform = 'scale(' + (0.5 + Math.random()*1.6) + ')';
+  starfield.appendChild(s);
+}
+
+/* animate train via CSS keyframes by adding animation on load */
+const trainWrap = document.getElementById('trainWrap');
+const trainAudio = document.getElementById('trainAudio');
+const whoosh = document.getElementById('whoosh');
+
+function startRide(){
+  // play audio (may be blocked in browsers; this will attempt)
+  trainAudio.currentTime = 0;
+  trainAudio.volume = 0.55;
+  trainAudio.play().catch(() => { /* ignore autoplay restrictions */ });
+
+  // add animation
+  trainWrap.style.animation = 'trainRide 5.4s cubic-bezier(.2,.8,.25,1) forwards';
+  trainWrap.style.willChange = 'transform';
+
+  // optional whoosh at half way
+  setTimeout(()=>{ try{ whoosh.play(); }catch(e){} }, 1400);
+
+  // after animation ends, move to page3
+  trainWrap.addEventListener('animationend', () => {
+    // small fade flash
+    const fade = document.createElement('div');
+    fade.style.position='fixed'; fade.style.inset=0; fade.style.background='radial-gradient(circle, rgba(240,220,150,0.12), rgba(0,0,0,0.8))';
+    fade.style.zIndex=9999; fade.style.transition='opacity .8s';
+    document.body.appendChild(fade);
+    fade.style.opacity='1';
+    setTimeout(()=>{ window.location.href='page3.html'; }, 800);
+  }, { once:true });
+}
+
+/* let user skip immediate */
+document.getElementById('skipBtn').addEventListener('click', ()=>{ window.location.href='page3.html'; });
+
+/* start automatically but delay 600ms for feel */
+setTimeout(startRide, 600);
+</script>
+</body>
+</html>
